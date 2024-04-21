@@ -1,5 +1,6 @@
 # Databricks notebook source
 from pyspark.sql.functions import current_date, udf , col , sum , count , avg
+
 def read_csv(path):
           read_csv = spark.read.csv(path , header=True , inferSchema=True)
           return read_csv
@@ -14,6 +15,7 @@ def write_csv( df , path):
     
 
 # COMMAND ----------
+
 
 def custom_schema_read_csv(path , schema):
     read_custom_schema = spark.read.csv(path , schema=schema )
@@ -38,7 +40,7 @@ def current_date_df(df):
 
 # COMMAND ----------
 
-def salary_of_each_department(df):
+ def salary_of_each_department(df):
     salary_by_department = df.groupby("department").agg(sum("salary").alias("total_salary"))
     salary_desc = salary_by_department.orderBy(col("total_salary").desc())
     return salary_desc
@@ -60,7 +62,7 @@ def list_the_department(df):
 
 # COMMAND ----------
 
-def avg_age(df):
+ def avg_age(df):
     avg_age_by_department = df.groupBy("department").agg(avg("age").alias("average_age"))
     return avg_age_by_department
 
