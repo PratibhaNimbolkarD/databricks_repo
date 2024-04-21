@@ -1,85 +1,58 @@
 # Databricks notebook source
 import requests
 import json
-from pyspark.sql.types import StructField, StructType,MapType,IntegerType, StringType, ArrayType
+from pyspark.sql.types import *
 from pyspark.sql.functions import explode, split, current_date
 
-response_data = requests.get('https://reqres.in/api/users?page=2')
-json_data = response_data.json()
-display(json_data)
-
-# COMMAND ----------
+def create_df(json_data,custom_schema):
+    raw_df = spark.createDataFrame(json_data,schema = custom_schema)
+    return raw_df
 
 
 
-# COMMAND ----------
 
-data_schema = StructType([
-    StructField("id", IntegerType(), True),
-    StructField("email", StringType(), True),
-    StructField("first_name", StringType(), True),
-    StructField("last_name", StringType(), True),
-    StructField("avatar", StringType(), True)
-])
 
-custom_schema = StructType([
-    StructField("page", IntegerType(), True),
-    StructField("per_page", IntegerType(), True),
-    StructField("total", IntegerType(), True),
-    StructField("total_pages", IntegerType(), True),
-    StructField("data", ArrayType(data_schema), True),
-    StructField("support", MapType(StringType(), StringType()), True)
-])
+
+
+
+
+
 
 
 # COMMAND ----------
 
-df = spark.createDataFrame([json_data], custom_schema)
-display(df)
+def col_drop(raw_df):
+    df = raw_df.drop('page', 'per_page', 'total', 'total_pages', 'support')
+    return df
 
 # COMMAND ----------
 
-df = df.drop('page', 'per_page', 'total', 'total_pages', 'support')
-display(df)
-df.printSchema()
+
+def flatten(df):
+    flatten_df = df.withColumn('data', explode('data'))
+    return flatten_df
 
 # COMMAND ----------
 
-from pyspark.sql.functions import explode
-df = df.withColumn('data', explode('data'))
-display(df)
-
-
-# COMMAND ----------
-
-df.printSchema()
+def new_col(flatten_df):
+    newcol_df = flatten_df.withColumn("id", flatten_df.data.id).withColumn('email', flatten_df.data.email).withColumn('first_name', flatten_df.data.first_name).withColumn('last_name', flatten_df.data.last_name).withColumn('aatar', flatten_df.data.avatar).drop(flatten_df.data)
+    return new_coldf
 
 # COMMAND ----------
 
-df = df.withColumn("id", df.data.id).withColumn('email', df.data.email).withColumn('first_name', df.data.first_name).withColumn('last_name', df.data.last_name).withColumn('aatar', df.data.avatar).drop(df.data)
-display(df)
+def derived_df(new_coldf):
+    derived_site_address_df = new_coldf.withColumn("site_address",split(new_coldf["email"],"@")[1])
+    return derived_site_address_df
 
 # COMMAND ----------
 
-from pyspark.sql.functions import split
-derived_site_address_df = df.withColumn("site_address",split(df["email"],"@")[1])
-display(derived_site_address_df)
+def load_date(derived_site_address_df):
+    loaded_date = derived_site_address_df.withColumn('load_date', current_date())
+    return loaded_date
 
 # COMMAND ----------
 
-from pyspark.sql.functions import current_date
-loaded_date = derived_site_address_df.withColumn('load_date', current_date())
-display(loaded_date)
-
-
-# COMMAND ----------
-
-loaded_date.write.format('delta').mode('overwrite').save('dbfs:/FileStore/assignments/question2/site_info/person_info')
-
-# COMMAND ----------
-
-testing_df = spark.read.format('delta').load('dbfs:/FileStore/assignments/question2/site_info/person_info')
-display(testing_df)
-
-# COMMAND ----------
-
+def testing(path):
+    loaded_date.write.format('delta').mode('overwrite').save(path)
+    testing_df = spark.read.format('delta').load(path)
+    return testing_df
