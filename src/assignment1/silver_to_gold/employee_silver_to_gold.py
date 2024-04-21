@@ -1,34 +1,30 @@
 # Databricks notebook source
-# MAGIC %run /Users/pratibha.nimbolkar@diggibyte.com/assignment1/source_to_bronze/utils8/+
+# MAGIC %run /Users/pratibha.nimbolkar@diggibyte.com/assignment1/source_to_bronze/utils
 
 # COMMAND ----------
 
 employee_df = spark.read.format("delta").load('dbfs:/FileStore/assignments/questoin1/silver/employee_info/dim_employee')
-display(employee_df)
-
-# COMMAND ----------
-
 
 
 # COMMAND ----------
 
- display(salary_of_each_department(employee_df))
+salary_of_each_department(employee_df)
 
 # COMMAND ----------
 
-display(employee_count(employee_df))
+employee_count(employee_df)
 
 # COMMAND ----------
 
-display(list_the_department(employee_df))
+list_the_department(employee_df)
 
 # COMMAND ----------
 
-display(avg_age(employee_df))
+avg_age(employee_df)
 
 # COMMAND ----------
 
-display(add_load_date(employee_df))
+add_load_date(employee_df)
 
 # COMMAND ----------
 
